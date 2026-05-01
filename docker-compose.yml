@@ -1,0 +1,101 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Contact Registry v3 — Multi-container stack
+#
+#  Services:
+#    postgres   – Postgres 16 (primary data store)
+#    pgbouncer  – PgBouncer 1.22 (connection pooler; app talks to this, not Postgres)
+#    redis      – Redis 7 (page cache; TTL-based, cache-aside pattern)
+#    webapp     – Rust app (Axum 0.7)
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Postgres ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: registry-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     registry
+      POSTGRES_PASSWORD: registry
+      POSTGRES_DB:       registry
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U registry -d registry"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    # Not exposed externally — only reachable from within the compose network.
+
+  # ── PgBouncer ──────────────────────────────────────────────────────────────
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: registry-pgbouncer
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: registry
+      DB_PASSWORD: registry
+      DB_NAME: registry
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: "100"
+      DEFAULT_POOL_SIZE: "20"
+      AUTH_TYPE: plain
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432 -U registry"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: registry-redis
+    restart: unless-stopped
+    command: redis-server --save "" --appendonly no  # pure cache; no persistence
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  # ── Web app ────────────────────────────────────────────────────────────────
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: contact-registry:v3
+    container_name: registry-webapp
+    restart: unless-stopped
+    depends_on:
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      PORT:         "8080"
+      DATABASE_URL: "postgres://registry:registry@pgbouncer:5432/registry"
+      REDIS_URL:    "redis://redis:6379"
+      RUST_LOG:     "webapp=info,tower_http=info"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  pg_data:
+    driver: local

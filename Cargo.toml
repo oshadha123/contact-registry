@@ -1,0 +1,67 @@
+[package]
+name = "webapp"
+version = "3.0.0"
+edition = "2021"
+
+[[bin]]
+name = "webapp"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Web framework + middleware
+axum       = { version = "0.7", features = ["macros", "form"] }
+tower      = { version = "0.4", features = ["full"] }
+tower-http = { version = "0.5", features = ["compression-gzip", "trace", "request-id", "fs"] }
+
+# Database — async Postgres, compile-time query checking, auto-migrations
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "migrate", "macros", "chrono"] }
+
+# Redis — async client for caching paginated reads
+redis = { version = "0.25", features = ["tokio-comp", "connection-manager"] }
+
+# Validation — derive macros with length/range/regex rules
+validator = { version = "0.18", features = ["derive"] }
+regex     = "1"
+once_cell = "1"
+
+# Templating — Jinja2-style templates compiled and type-checked at build time
+askama      = { version = "0.12", features = ["with-axum"] }
+askama_axum = "0.4"
+
+# Serialization
+serde      = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+thiserror = "1"
+anyhow    = "1"
+
+# Structured logging
+tracing            = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+# Config validation
+envy = "0.4"
+
+# Utilities
+chrono  = { version = "0.4", features = ["serde"] }
+dotenvy = "0.15"
+
+# Rate limiting
+governor      = { version = "0.6" }
+bytes         = "1"
+http-body-util = "0.1"
+futures-util = "0.3"
+
+# Static asset hashing (ETag)
+sha2 = "0.10"
+hex  = "0.4"
+
+[profile.release]
+opt-level     = 3
+lto           = true
+codegen-units = 1
+strip         = true

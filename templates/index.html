@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Registry</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Literata:ital,opsz,wght@0,7..72,300;0,7..72,400;1,7..72,300&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:        '#0d0d0f',
+            'bg-card': '#18181c',
+            line:      '#2a2a30',
+            fg:        '#e8e6f0',
+            'fg-muted':'#7a7888',
+            lime:      '#b8f55a',
+            red:       '#ff5c5c',
+            green:     '#52d98a',
+          },
+          fontFamily: {
+            head: ['Syne', 'system-ui', 'sans-serif'],
+            body: ['Literata', 'Georgia', 'serif'],
+            mono: ['"IBM Plex Mono"', '"Courier New"', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Literata', Georgia, serif; font-weight: 300; line-height: 1.65; }
+
+    .toast {
+      position: fixed; top: 1.5rem; left: 50%; transform: translateX(-50%);
+      z-index: 50;
+      background: #b8f55a; color: #0d0d0f;
+      font-family: 'Syne', sans-serif; font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      padding: 0.65rem 1.5rem; border-radius: 3px;
+      box-shadow: 0 0 40px rgba(184,245,90,0.5);
+      white-space: nowrap;
+      animation: toastIn 0.3s cubic-bezier(0.16,1,0.3,1), toastOut 0.4s ease 2.8s forwards;
+    }
+    @keyframes toastIn  { from { opacity:0; transform:translateX(-50%) translateY(-16px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+    @keyframes toastOut { to   { opacity:0; transform:translateX(-50%) translateY(-12px); } }
+
+    input { transition: border-color 0.15s, box-shadow 0.15s; }
+    input:focus {
+      outline: none;
+      border-color: #b8f55a !important;
+      box-shadow: 0 0 0 3px rgba(184,245,90,0.13);
+    }
+    input.is-valid   { border-color: #52d98a !important; }
+    input.is-invalid { border-color: #ff5c5c !important; box-shadow: 0 0 0 3px rgba(255,92,92,0.1); }
+    input::placeholder { color: #8a8898; font-style: italic; }
+
+    .field-hint  { font-family: 'IBM Plex Mono', monospace; font-size: 0.58rem; color: #8a8898; display: block; margin-top: 0.3rem; }
+    .field-error { font-family: 'IBM Plex Mono', monospace; font-size: 0.58rem; color: #ff5c5c; letter-spacing: 0.04em; display: block; min-height: 0.9rem; margin-top: 0.2rem; }
+
+    tbody tr:hover { background: rgba(184,245,90,0.025); }
+
+    .btn-submit { transition: opacity 0.15s, box-shadow 0.2s, transform 0.1s; }
+    .btn-submit:hover  { opacity: 0.88; box-shadow: 0 0 36px rgba(184,245,90,0.3) !important; }
+    .btn-submit:active { transform: scale(0.98); }
+  </style>
+</head>
+<body class="bg-bg text-fg min-h-screen px-8 pb-24"
+      style="background-image:
+        radial-gradient(ellipse 70% 50% at 10% 0%,  rgba(184,245,90,0.03) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 90% 100%, rgba(184,245,90,0.025) 0%, transparent 60%);">
+
+  {% if show_success %}<div class="toast" id="toast">✓ &nbsp; Entry committed</div>{% endif %}
+
+  <div class="max-w-3xl mx-auto py-6 border-b border-line flex items-center justify-between">
+    <span class="font-mono tracking-widest uppercase" style="font-size:0.58rem; color:#9e9cb0; letter-spacing:0.2em;">
+      CNTCT-REG &nbsp;/&nbsp; v3.0
+    </span>
+    <span class="w-1.5 h-1.5 rounded-full bg-lime" style="box-shadow:0 0 8px #b8f55a;"></span>
+  </div>
+
+  <header class="max-w-3xl mx-auto border-b border-line"
+          style="padding:4rem 0 3.5rem; display:grid; grid-template-columns:1fr auto; align-items:end; gap:2rem;">
+    <h1 class="font-head font-black uppercase leading-none" style="font-size:clamp(2.8rem,6vw,5rem); letter-spacing:-0.04em;">
+      <span class="block font-body font-light text-lime"
+            style="font-size:0.45em; letter-spacing:0.02em; text-transform:none; font-style:italic; margin-bottom:0.3rem;">
+        Contact
+      </span>
+      Registry
+    </h1>
+    <div class="text-right font-mono uppercase" style="font-size:0.58rem; letter-spacing:0.12em; color:#9e9cb0; line-height:2.1;">
+      <div>Personal Data</div>
+      <div>Management System</div>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto">
+
+    <div class="flex items-center gap-4 mt-12 mb-5">
+      <span class="font-mono text-lime shrink-0" style="font-size:0.58rem; letter-spacing:0.1em;">01</span>
+      <span class="font-head font-semibold tracking-widest uppercase shrink-0" style="font-size:0.68rem; color:#7a7888;">New Entry</span>
+      <div class="flex-1 h-px bg-line"></div>
+    </div>
+
+    <div class="bg-bg-card border border-line rounded-sm">
+      <div class="p-10">
+
+        {% if !errors.is_empty() %}
+        <div class="flex items-start gap-4 rounded-sm mb-7 border-l-2 border-red p-4"
+             style="background:rgba(255,92,92,0.08);">
+          <span class="font-mono text-red shrink-0 mt-0.5" style="font-size:0.58rem; font-weight:500;">ERR</span>
+          <div class="text-red" style="font-size:0.85rem;">
+            <strong class="font-head" style="font-size:0.8rem; letter-spacing:0.04em;">Please correct the following:</strong>
+            <ul class="mt-2 pl-4 list-disc space-y-1">
+              {% for e in errors %}
+              <li class="font-mono opacity-90" style="font-size:0.72rem;">{{ e }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+
+        <form id="registry-form" method="POST" action="/" autocomplete="off" novalidate>
+
+          <div class="grid grid-cols-2 gap-5 mb-5">
+            <div class="flex flex-col">
+              <label for="first_name" class="font-mono uppercase flex items-center gap-1 mb-1.5"
+                     style="font-size:0.58rem; letter-spacing:0.18em; color:#9e9cb0;">
+                Given Name<span class="text-lime" style="opacity:0.8;">*</span>
+              </label>
+              <input type="text" id="first_name" name="first_name"
+                     value="{{ form.first_name }}"
+                     placeholder="e.g. Jānis"
+                     class="w-full rounded-sm font-body text-fg border"
+                     style="padding:0.75rem 1rem; background:#242429; border-color:#38383f; font-size:0.95rem; font-weight:300;">
+              <span class="field-hint">2–50 letters, hyphens or apostrophes</span>
+              <span class="field-error" id="err-first_name"></span>
+            </div>
+            <div class="flex flex-col">
+              <label for="last_name" class="font-mono uppercase flex items-center gap-1 mb-1.5"
+                     style="font-size:0.58rem; letter-spacing:0.18em; color:#9e9cb0;">
+                Family Name<span class="text-lime" style="opacity:0.8;">*</span>
+              </label>
+              <input type="text" id="last_name" name="last_name"
+                     value="{{ form.last_name }}"
+                     placeholder="e.g. Bērziņš"
+                     class="w-full rounded-sm font-body text-fg border"
+                     style="padding:0.75rem 1rem; background:#242429; border-color:#38383f; font-size:0.95rem; font-weight:300;">
+              <span class="field-hint">2–50 letters, hyphens or apostrophes</span>
+              <span class="field-error" id="err-last_name"></span>
+            </div>
+          </div>
+
+          <div class="flex flex-col mb-5">
+            <label for="phone" class="font-mono uppercase flex items-center gap-1 mb-1.5"
+                   style="font-size:0.58rem; letter-spacing:0.18em; color:#9e9cb0;">
+              Contact Number<span class="text-lime" style="opacity:0.8;">*</span>
+            </label>
+            <input type="text" id="phone" name="phone"
+                   value="{{ form.phone }}"
+                   placeholder="12345678"
+                   class="w-full rounded-sm font-body text-fg border"
+                   style="padding:0.75rem 1rem; background:#242429; border-color:#38383f; font-size:0.95rem; font-weight:300;">
+            <span class="field-hint">Exactly 8 numeric digits — no spaces or symbols</span>
+            <span class="field-error" id="err-phone"></span>
+          </div>
+
+          <div class="flex flex-col mb-5">
+            <label for="address" class="font-mono uppercase flex items-center gap-1 mb-1.5"
+                   style="font-size:0.58rem; letter-spacing:0.18em; color:#9e9cb0;">
+              Residential Address<span class="text-lime" style="opacity:0.8;">*</span>
+            </label>
+            <input type="text" id="address" name="address"
+                   value="{{ form.address }}"
+                   placeholder="e.g. Brīvības iela 19, Rīga"
+                   class="w-full rounded-sm font-body text-fg border"
+                   style="padding:0.75rem 1rem; background:#242429; border-color:#38383f; font-size:0.95rem; font-weight:300;">
+            <span class="field-hint">5–200 characters</span>
+            <span class="field-error" id="err-address"></span>
+          </div>
+
+          <div class="flex flex-col mb-5">
+            <label for="age" class="font-mono uppercase flex items-center gap-1 mb-1.5"
+                   style="font-size:0.58rem; letter-spacing:0.18em; color:#9e9cb0;">
+              Age<span class="text-lime" style="opacity:0.8;">*</span>
+            </label>
+            <input type="text" id="age" name="age"
+                   value="{{ form.age }}"
+                   placeholder="25"
+                   class="w-full rounded-sm font-body text-fg border"
+                   style="padding:0.75rem 1rem; background:#242429; border-color:#38383f; font-size:0.95rem; font-weight:300;">
+            <span class="field-hint">Whole number between 1 and 150</span>
+            <span class="field-error" id="err-age"></span>
+          </div>
+
+          <div class="mt-8">
+            <button type="submit" class="btn-submit font-head font-bold uppercase tracking-widest cursor-pointer"
+                    style="padding:0.8rem 2rem; background:#b8f55a; color:#0d0d0f; border:none; border-radius:3px;
+                           font-size:0.74rem; letter-spacing:0.14em; box-shadow:0 0 24px rgba(184,245,90,0.13);">
+              Commit Entry &rarr;
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-4 mt-12 mb-5">
+      <span class="font-mono text-lime shrink-0" style="font-size:0.58rem; letter-spacing:0.1em;">02</span>
+      <span class="font-head font-semibold tracking-widest uppercase flex items-center gap-2 shrink-0"
+            style="font-size:0.68rem; color:#7a7888;">
+        All Entries
+        {% if !records.is_empty() %}
+        <span class="font-mono text-lime rounded-full px-2 py-0.5"
+              style="font-size:0.58rem; background:rgba(184,245,90,0.1); border:1px solid rgba(184,245,90,0.22);">
+          {{ records.len() }}
+        </span>
+        {% endif %}
+      </span>
+      <div class="flex-1 h-px bg-line"></div>
+    </div>
+
+    <div class="bg-bg-card border border-line rounded-sm overflow-hidden">
+      {% if records.is_empty() %}
+      <div class="flex flex-col items-center justify-center gap-3" style="padding:5rem 0;">
+        <div class="font-mono tracking-widest uppercase" style="font-size:0.62rem; color:#3e3d48; letter-spacing:0.14em;">No entries yet</div>
+        <div class="font-body" style="font-size:0.85rem; color:#3e3d48;">Submit the form above to add the first record.</div>
+      </div>
+      {% else %}
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse">
+          <thead>
+            <tr class="border-b border-line">
+              <th class="font-mono uppercase text-left px-6 py-4" style="font-size:0.54rem; color:#7a7888; letter-spacing:0.14em; font-weight:500;">ID</th>
+              <th class="font-mono uppercase text-left px-6 py-4" style="font-size:0.54rem; color:#7a7888; letter-spacing:0.14em; font-weight:500;">Full Name</th>
+              <th class="font-mono uppercase text-left px-6 py-4" style="font-size:0.54rem; color:#7a7888; letter-spacing:0.14em; font-weight:500;">Contact</th>
+              <th class="font-mono uppercase text-left px-6 py-4" style="font-size:0.54rem; color:#7a7888; letter-spacing:0.14em; font-weight:500;">Address</th>
+              <th class="font-mono uppercase text-left px-6 py-4" style="font-size:0.54rem; color:#7a7888; letter-spacing:0.14em; font-weight:500;">Age</th>
+              <th class="font-mono uppercase text-left px-6 py-4" style="font-size:0.54rem; color:#7a7888; letter-spacing:0.14em; font-weight:500;">Recorded At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in records %}
+            <tr class="border-b border-line">
+              <td class="font-mono px-6 py-4 text-lime" style="font-size:0.74rem;">{{ r.id }}</td>
+              <td class="px-6 py-4 font-body" style="font-size:0.9rem; font-weight:400;">{{ r.first_name }} {{ r.last_name }}</td>
+              <td class="font-mono px-6 py-4" style="font-size:0.76rem; color:#9e9cb0;">{{ r.phone }}</td>
+              <td class="px-6 py-4 font-body" style="font-size:0.84rem; color:#9e9cb0; max-width:220px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ r.address }}</td>
+              <td class="font-mono px-6 py-4" style="font-size:0.76rem; color:#9e9cb0;">{{ r.age }}</td>
+              <td class="font-mono px-6 py-4" style="font-size:0.68rem; color:#3e3d48; letter-spacing:0.04em;">{{ r.created_at.format("%Y-%m-%d %H:%M") }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-between px-6 py-4 border-t border-line">
+        {% match cursor %}
+          {% when Some with (_c) %}
+            <a href="/" class="font-mono uppercase text-lime" style="font-size:0.58rem; letter-spacing:0.12em;">← First page</a>
+          {% when None %}
+            <span class="font-mono uppercase" style="font-size:0.58rem; letter-spacing:0.12em; color:#3e3d48;">← First page</span>
+        {% endmatch %}
+        {% match next_cursor %}
+          {% when Some with (nc) %}
+            <a href="/?cursor={{ nc }}" class="font-mono uppercase text-lime" style="font-size:0.58rem; letter-spacing:0.12em;">Next page →</a>
+          {% when None %}
+            <span class="font-mono uppercase" style="font-size:0.58rem; letter-spacing:0.12em; color:#3e3d48;">Last page</span>
+        {% endmatch %}
+      </div>
+      {% endif %}
+    </div>
+
+  </main>
+
+  <script>
+    if (location.search.includes('success=1')) {
+      history.replaceState(null, '', location.pathname);
+    }
+
+    const NAME_RE  = /^[\p{L}\-']+$/u;
+    const DIGIT_RE = /^\d+$/;
+
+    const RULES = {
+      first_name(v) {
+        if (!v)                             return 'Given name is required';
+        if (v.length < 2 || v.length > 50) return 'Must be 2–50 characters';
+        if (!NAME_RE.test(v))              return 'Letters, hyphens and apostrophes only';
+        return null;
+      },
+      last_name(v) {
+        if (!v)                             return 'Family name is required';
+        if (v.length < 2 || v.length > 50) return 'Must be 2–50 characters';
+        if (!NAME_RE.test(v))              return 'Letters, hyphens and apostrophes only';
+        return null;
+      },
+      phone(v) {
+        if (!v)                return 'Contact number is required';
+        if (!DIGIT_RE.test(v)) return 'Digits only — no spaces or symbols';
+        if (v.length !== 8)    return `Must be exactly 8 digits (${v.length} entered)`;
+        return null;
+      },
+      address(v) {
+        if (!v)                              return 'Address is required';
+        if (v.length < 5 || v.length > 200) return 'Must be 5–200 characters';
+        return null;
+      },
+      age(v) {
+        if (!v)                return 'Age is required';
+        if (!DIGIT_RE.test(v)) return 'Must be a whole number';
+        const n = parseInt(v, 10);
+        if (n < 1 || n > 150)  return `Must be between 1 and 150 (got ${n})`;
+        return null;
+      },
+    };
+
+    function validateField(input) {
+      const rule = RULES[input.name];
+      if (!rule) return true;
+      const err   = rule(input.value.trim());
+      const errEl = document.getElementById('err-' + input.name);
+      if (err) {
+        input.classList.replace('is-valid', 'is-invalid') || input.classList.add('is-invalid');
+        if (errEl) errEl.textContent = err;
+        return false;
+      } else {
+        input.classList.replace('is-invalid', 'is-valid') || input.classList.add('is-valid');
+        if (errEl) errEl.textContent = '';
+        return true;
+      }
+    }
+
+    const form = document.getElementById('registry-form');
+    form.querySelectorAll('input').forEach(input => {
+      input.addEventListener('blur', () => validateField(input));
+      input.addEventListener('input', () => {
+        if (input.classList.contains('is-invalid') || input.classList.contains('is-valid')) {
+          validateField(input);
+        }
+      });
+      if (input.value.trim() !== '') validateField(input);
+    });
+
+    form.addEventListener('submit', e => {
+      let allValid = true;
+      form.querySelectorAll('input').forEach(input => {
+        if (!validateField(input)) allValid = false;
+      });
+      if (!allValid) e.preventDefault();
+    });
+  </script>
+</body>
+</html>

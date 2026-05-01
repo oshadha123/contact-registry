@@ -1,0 +1,21 @@
+/* Tailwind directives — CLI compiles + purges this into static/css/app.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens ────────────────────────────────────────────────────────── */
+:root {
+  --brand:    #1e40af;
+  --brand-lt: #3b82f6;
+  --surface:  #f8fafc;
+  --border:   #e2e8f0;
+  --text:     #0f172a;
+  --muted:    #64748b;
+  --danger:   #dc2626;
+  --success:  #16a34a;
+}
+
+body {
+  background: var(--surface);
+  color: var(--text);
+}
